@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 type PriceIndexResponse struct {
@@ -29,7 +30,7 @@ type Currency struct {
 	Symbol      string  `json:"symbol"`
 	Rate        string  `json:"rate"`
 	Description string  `json:"description"`
-	RateFloat   float32 `json:"rate_float"`
+	RateFloat   float64 `json:"rate_float"`
 }
 
 func getBitcoinPriceIndex(url string) (Bpi, error) {
@@ -49,4 +50,27 @@ func getBitcoinPriceIndex(url string) (Bpi, error) {
 	}
 
 	return priceIndexResponse.Bpi, err
+}
+
+func startPriceSync(url string, timeout time.Duration) {
+	bpiChan := make(chan *Bpi)
+
+	go func() {
+		for {
+			bpi, err := getBitcoinPriceIndex(url)
+			if err != nil {
+				bpiChan <- nil
+				log.Printf("no price response:%s", err)
+			}
+			bpiChan <- &bpi
+			time.Sleep(time.Second * timeout)
+		}
+	}()
+
+	for {
+		bpi := <-bpiChan
+		setCurrencyRate(bpi.Eur.Code, bpi.Eur.RateFloat)
+		setCurrencyRate(bpi.Usd.Code, bpi.Usd.RateFloat)
+		setCurrencyRate(bpi.Gbp.Code, bpi.Gbp.RateFloat)
+	}
 }

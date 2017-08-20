@@ -1,2 +1,11 @@
-priceindexuri: "https://api.coindesk.com/v1/bpi/currentprice.json"
-telegrambottoken: 422672556:AAFjiW7SU139MxbNz4Di9Ay7m6BCDW9GogY
+bitcoin:
+  uri: "https://api.coindesk.com/v1/bpi/currentprice.json"
+  timeout: 5
+telegram:
+  token: 422672556:AAFjiW7SU139MxbNz4Di9Ay7m6BCDW9GogY
+db:
+  name: bot
+  host: localhost
+  user: y.zhayvoronok
+  password: 
+  port: 5432

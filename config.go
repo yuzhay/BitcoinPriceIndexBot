@@ -1,13 +1,51 @@
 package main
 
-var Config = struct {
-	PriceIndexURI    string `required:"true"`
-	TelegramBotToken string `required:"true"`
+import (
+	"fmt"
+	"io/ioutil"
+	"os"
 
-	DB struct {
+	yaml "gopkg.in/yaml.v2"
+)
+
+type Config struct {
+	Bitcoin  BitcoinConfig
+	Telegram TelegramConfig
+	DB       struct {
 		Name     string
-		User     string `default:"root"`
-		Password string `default:""`
-		Port     uint   `default:"3306"`
+		User     string
+		Password string
+		Host     string
+		Port     uint
 	}
-}{}
+}
+
+type BitcoinConfig struct {
+	Uri     string
+	Timeout int
+}
+
+type TelegramConfig struct {
+	Token string
+}
+
+func loadConfig(configPath string) (*Config, error) {
+	var config Config
+
+	fConfig, err := os.Open(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("can't open YAML config %q: %s", configPath, err)
+	}
+
+	fData, err := ioutil.ReadAll(fConfig)
+	if err != nil {
+		return nil, fmt.Errorf("can't read YAML file %q: %s", configPath, err)
+	}
+
+	err = yaml.Unmarshal(fData, &config)
+	if err != nil {
+		return nil, fmt.Errorf("can't unmarshal YAML file %q: %s", configPath, err)
+	}
+
+	return &config, nil
+}
